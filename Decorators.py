@@ -1,44 +1,81 @@
 import random
 import time
+from functools import wraps
 
-def testRange(*args, **kwargs):
-    def inner(func):
-        value = func()
-        if value >= kwargs["minimum"] and value <= kwargs["maximum"]:
-            print("Value within range: ", value)
-            return lambda :value
+# def testRange(*args, **kwargs):
+#     def inner(func):
+#         print("Decorator2")
+#         value = func()
+#         if value >= kwargs["minimum"] and value <= kwargs["maximum"]:
+#             print("Value within range: ", value)
+#             return lambda :value
+#         else:
+#             print("Value out of range: ", value)
+#             return lambda :False
+
+#     return inner
+
+
+previous_temperature = []
+
+def temperature_simulator():
+    if len(previous_temperature) == 0:
+        temperature = random.randint(-40, 155)
+        if temperature <= -25 and temperature >= 140:
+            return temperature            
+    else:
+        if random.randint(0,1) == 0:
+            if random.randint(0,1) == 0:
+                temperature = previous_temperature[-1] + 0.5
+            else:
+                temperature = previous_temperature[-1] - 0.5
         else:
-            print("Value out of range: ", value)
-            return lambda :False
+            if random.randint(0,1) == 0:
+                temperature = previous_temperature[-1] + 3.0
+            else:
+                temperature = previous_temperature[-1] - 3.0
+
+    return temperature
+    
+def testRange(func):
+    def inner():
+        value = func()
+        if value >= -25 and value <= 140:
+            return value
+        else:
+            return False
 
     return inner
 
 def testDifference(func):
     def inner():
-        # value = func()
-        # previous_temperature = 40
-        # # if previous_temperature == None:
-        # #     print("First measurement")
-        
-        # difference = abs(previous_temperature - value)
-        # print("Difference : ", difference)
-        # if difference <= 1:
-        #     print("Valid measurement; difference valid")
-        # else:
-        #     print("Invalid measurement; difference to big")
+        value = func()
 
-        # previous_temperature = value
-        return func()
+        if len(previous_temperature) == 0:
+            previous_temperature.append(value)
+            return True
+        else:
+            difference = abs(previous_temperature[-1] - value)
+            if difference <= 1:
+                previous_temperature.append(value)
+                return True
+            else:
+                previous_temperature.append(value)
+                return False
     return inner
 
-      
-@testDifference
-@testRange(minimum=-25, maximum=140)  
+    
+@testDifference                           
+@testRange
+# (minimum=-25, maximum=140)               
 def getTemperature():
-    random.seed(time.time())
-    return random.randint(-40, 155)
-
+    temp = temperature_simulator()
+    return temp
 
 for i in range(0,10):
-    print("Forloop")
     test_result = getTemperature()
+    print("Test result : ", test_result)
+
+
+print("Previous temperatures: ", previous_temperature)
+
